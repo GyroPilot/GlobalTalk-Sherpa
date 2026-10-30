@@ -1,0 +1,16 @@
+wait 3
+open GlobalTalk Scan
+wait 6
+pict Shot World
+zone LisaGaming
+wait 6
+pict Shot Zone
+node Performa 475
+wait 6
+pict Shot Node
+node netatalk
+wait 6
+world
+text Sherpa List
+wait 3
+quit

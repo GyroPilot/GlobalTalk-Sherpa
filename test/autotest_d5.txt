@@ -1,0 +1,15 @@
+wait 25
+scan site
+waitscan
+wait 3
+scan site
+waitscan
+wait 3
+open GlobalTalk Scan
+wait 12
+dashboard
+wait 12
+diagram
+wait 12
+node Blackbird
+wait 600

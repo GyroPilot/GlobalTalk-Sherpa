@@ -1,0 +1,7 @@
+wait 30
+scan all
+waitscan
+wait 5
+text Live List
+pict Shot Live World
+wait 600

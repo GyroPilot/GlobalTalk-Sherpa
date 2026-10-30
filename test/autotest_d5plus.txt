@@ -1,0 +1,7 @@
+wait 25
+open GlobalTalk Scan
+wait 14
+dashboard
+wait 14
+diagram
+wait 600

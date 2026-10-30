@@ -1,0 +1,8 @@
+wait 25
+scan site
+waitscan
+wait 8
+zone *
+wait 10
+world
+wait 600

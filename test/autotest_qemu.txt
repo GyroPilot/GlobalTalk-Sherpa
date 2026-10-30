@@ -1,0 +1,18 @@
+wait 25
+open GlobalTalk Scan
+wait 8
+pict Shot World
+zone LisaGaming
+wait 8
+pict Shot Zone
+node Performa 475
+wait 8
+pict Shot Node
+world
+text Saved List
+scan all
+waitscan
+wait 8
+pict Shot Live World
+text Live List
+wait 600

@@ -1,0 +1,9 @@
+wait 25
+open GlobalTalk Scan
+wait 14
+zone LisaGaming
+wait 10
+zone Vintage
+wait 10
+node netatalk
+wait 600

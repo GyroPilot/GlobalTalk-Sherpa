@@ -1,0 +1,14 @@
+wait 25
+router
+wait 4
+pict Shot Router
+scan site
+waitscan
+wait 3
+dashboard
+wait 4
+pict Shot Dashboard
+diagram
+wait 4
+pict Shot Diagram
+wait 600

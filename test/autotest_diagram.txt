@@ -1,0 +1,11 @@
+wait 25
+open GlobalTalk Scan
+wait 14
+diagram
+wait 12
+zone LisaGaming
+wait 12
+node Emulated Mac
+wait 12
+diagram
+wait 600

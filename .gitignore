@@ -1,0 +1,7 @@
+# build products and test scratch; the release files go on the GitHub Releases page
+build/
+dist/
+test/work/
+test/out/
+.DS_Store
+*.bak_*
