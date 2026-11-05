@@ -344,8 +344,10 @@ static Handle ThisMacIcon(void)
 
 static Boolean IsThisMac(Node *n)
 {
-    return gScanIsLive && n->net == (unsigned long)gOurAddr >> 16
-        && n->node == (((unsigned long)gOurAddr >> 8) & 0xFF);
+    unsigned short net;
+    unsigned char node;
+    SplitAddr(gOurAddr, gNetLo, gNetHi, &net, &node);
+    return gScanIsLive && n->net == net && n->node == node;
 }
 
 /* A kind's icon: one from an icon pack ("K:<kind>"), else Sherpa's own. */
@@ -589,8 +591,13 @@ Handle MapText(void)
             if (z == 0) {
                 PCatC(s, ", zone list result "); PCatNum(s, gZipErr);
                 PCatC(s, ", info result "); PCatNum(s, gInfoErr);
-                PCatC(s, ", this Mac "); PCatNum(s, (unsigned short)(gOurAddr >> 16)); PCatC(s, "."); PCatNum(s, (gOurAddr >> 8) & 255);
-                PCatC(s, ", router "); PCatNum(s, (unsigned short)(gRouterAddr >> 16)); PCatC(s, "."); PCatNum(s, (gRouterAddr >> 8) & 255);
+                { unsigned short an; unsigned char ad;
+                SplitAddr(gOurAddr, gNetLo, gNetHi, &an, &ad);
+                PCatC(s, ", this Mac "); PCatNum(s, an); PCatC(s, "."); PCatNum(s, ad);
+                SplitAddr(gRouterAddr, gNetLo, gNetHi, &an, &ad);
+                PCatC(s, ", router "); PCatNum(s, an); PCatC(s, "."); PCatNum(s, ad);
+                PCatC(s, ", cable "); PCatNum(s, gNetLo); PCatC(s, "-"); PCatNum(s, gNetHi);
+                PCatC(s, ", raw "); PCatU(s, gOurAddr); PCatC(s, " "); PCatU(s, gRouterAddr); }
             }
             HAppendP(t, s); HAppendC(t, "\r");
         }

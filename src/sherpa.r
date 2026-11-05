@@ -67,7 +67,7 @@ resource 'ALRT' (128) { { 40, 40, 250, 470 }, 128, {
 resource 'DITL' (128) { {
     { 180, 340, 200, 410 }, Button { enabled, "OK" };
     { 12, 12, 44, 44 }, Icon { disabled, 128 };
-    { 12, 60, 30, 410 }, StaticText { disabled, "GlobalTalk Sherpa 1.0.1" };
+    { 12, 60, 30, 410 }, StaticText { disabled, "GlobalTalk Sherpa 1.0.2" };
     { 34, 60, 172, 410 }, StaticText { disabled,
         "Finds the AppleTalk zones and devices on your network and on GlobalTalk, "
         "and maps them. Click a zone or a device to look closer.\0x0D\0x0D"
@@ -106,7 +106,7 @@ resource 'FREF' (128) { 'APPL', 0, "" };
 resource 'FREF' (129) { 'GTSi', 1, "" };
 resource 'BNDL' (128) { 'GTSh', 0, { 'ICN#', { 0, 128; 1, 129 }; 'FREF', { 0, 128; 1, 129 } } };
 
-resource 'vers' (1) { 0x01, 0x01, 0x80, 0x00, verUS, "1.0.1", "1.0.1, GlobalTalk Sherpa, Marchintosh 2027" };
+resource 'vers' (1) { 0x01, 0x02, 0x80, 0x00, verUS, "1.0.2", "1.0.2, GlobalTalk Sherpa, Marchintosh 2027" };
 
 resource 'SIZE' (-1) {
     reserved, acceptSuspendResumeEvents, reserved, canBackground, doesActivateOnFGSwitch,

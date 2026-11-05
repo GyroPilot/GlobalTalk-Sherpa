@@ -129,8 +129,7 @@ static short AskRouter(Str32a *out, short max)
     if ((err = PBControlSync((ParmBlkPtr)&info)) != noErr) {
         PCatC(gRouterNote, "AppleTalk info error "); PCatNum(gRouterNote, err); return 0;
     }
-    rnet = (unsigned long)info.routerAddr >> 16;
-    rnode = ((unsigned long)info.routerAddr >> 8) & 0xFF;
+    SplitAddr(info.routerAddr, info.netLo, info.netHi, &rnet, &rnode);
     if (rnode == 0) { PCatC(gRouterNote, "no router heard on this network."); return 0; }
     CtoP("Router ", gRouterNote);
     PCatNum(gRouterNote, rnet); PCatC(gRouterNote, "."); PCatNum(gRouterNote, rnode);

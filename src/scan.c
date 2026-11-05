@@ -28,6 +28,21 @@ static Boolean sStop;
 short gZipErr;
 long gOurAddr, gRouterAddr;
 short gInfoErr;
+unsigned short gNetLo, gNetHi;
+
+/* GetATalkInfo's ourAdd and routerAddr.  Sherpa read them as an AddrBlock (net, node, socket), but real Macs
+ * gave 0, net, node: the Performa on net 38 showed its router 38.1 as "0.38", the XL on net 37 itself as "0.37"
+ * (4 Nov 2026).  Use the layout whose network lies in this cable's range, netLo..netHi, from the same call. */
+void SplitAddr(long a, unsigned short lo, unsigned short hi, unsigned short *net, unsigned char *node)
+{
+    unsigned long u = (unsigned long)a;
+    unsigned short n1 = u >> 16, n2 = (u >> 8) & 0xFFFF;
+    if (!(n1 && n1 >= lo && n1 <= hi) && (u >> 24) == 0 && n2 && n2 >= lo && n2 <= hi) {
+        *net = n2; *node = u & 0xFF;
+    } else {
+        *net = n1; *node = (u >> 8) & 0xFF;
+    }
+}
 
 static void GetInfo(void)
 {
@@ -39,6 +54,7 @@ static void GetInfo(void)
     gInfoErr = PBControlSync((ParmBlkPtr)&pb);
     gOurAddr = pb.ourAdd;
     gRouterAddr = pb.routerAddr;
+    gNetLo = pb.netLo; gNetHi = pb.netHi;
 }
 
 OSErr ATOpen(void)
@@ -191,12 +207,13 @@ static void AddName(short zi, unsigned short net, unsigned char node, unsigned c
  * its Sharing Setup name and (System 7) its model from Gestalt. */
 static void AddThisMac(short zi)
 {
-    unsigned short net = (unsigned long)gOurAddr >> 16;
-    unsigned char node = ((unsigned long)gOurAddr >> 8) & 0xFF;
+    unsigned short net;
+    unsigned char node;
     StringHandle sh;
     Str32a obj;
     long resp;
     short i;
+    SplitAddr(gOurAddr, gNetLo, gNetHi, &net, &node);
     if (node == 0) return;
     for (i = 0; i < gNumNames; i++)
         if (gNames[i].net == net && gNames[i].node == node) return;

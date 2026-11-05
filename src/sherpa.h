@@ -176,6 +176,8 @@ void PCatNum(unsigned char *p, long n);
 void PCatU(unsigned char *p, unsigned long n);
 extern short gZipErr, gInfoErr;
 extern long gOurAddr, gRouterAddr;
+extern unsigned short gNetLo, gNetHi;
+void SplitAddr(long a, unsigned short lo, unsigned short hi, unsigned short *net, unsigned char *node);
 void PCopy(unsigned char *dst, ConstStringPtr src, short max);
 Boolean PEqualNoCase(ConstStringPtr a, ConstStringPtr b);
 Boolean PContains(ConstStringPtr hay, const char *needle);

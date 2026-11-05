@@ -123,8 +123,16 @@ def h(*args):
 def main():
     os.makedirs(DIST, exist_ok=True)
     os.makedirs(WORK, exist_ok=True)
-    app = os.path.join(ROOT, 'build', 'Sherpa.bin')
+    # Retro68's MacBinary leaves the Finder flags at 0. Without hasBundle (0x2000) the Finder never reads Sherpa's
+    # BNDL, so it showed the generic application icon (Tim, 2 Nov 2026). Set it, and redo the MacBinary II CRC.
+    b = bytearray(open(os.path.join(ROOT, 'build', 'Sherpa.bin'), 'rb').read())
+    b[73] |= 0x20
+    b[124:126] = struct.pack('>H', binascii.crc_hqx(bytes(b[:124]), 0))
+    app = os.path.join(WORK, 'Sherpa_bundle.bin')
+    os.makedirs(WORK, exist_ok=True)
+    open(app, 'wb').write(bytes(b))
     name, ftype, creator, flags, data, rsrc = macbinary(app)
+    assert flags & 0x2000, 'hasBundle not set'
     appname = b'GlobalTalk Sherpa'
 
     hqx = binhex(appname, ftype, creator, flags, data, rsrc)
