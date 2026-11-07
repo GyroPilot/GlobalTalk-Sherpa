@@ -14,10 +14,12 @@ How to use it
 - Scan > Local Network Zones > Ask the Router shows what your router said. After a Scan Local Network, the Dashboard says it too.
 - On System 7, your own Mac is drawn with its real Apple icon (the one About This Macintosh shows), taken from your Mac itself.
 
+The bar at the bottom says, on the right, when the scan you are looking at was made ("Last scan" or "Saved scan from"). A zone where nothing replied says "no answer": it is empty, or its devices could not be reached.
+
 Reliability: each device's bar is how often it answered your scans. It says "new" until it has been scanned three times.
 
 File servers: the card shows whether a server takes guests. Sherpa asks the same question the Chooser does; it never logs in.
 
 Runs on System 6.0.8 and System 7 (68000 code: Plus and up). AppleTalk must be on.
 
-Version VERSION, 29 October 2026, from Tim O'Connor's lab (Marchintosh 2027). The sample scan is GlobalTalk as the netatalk Pi saw it on 25 October 2026.
+Version VERSION, 7 November 2026, from Tim O'Connor's lab (Marchintosh 2027). The sample scan is GlobalTalk as the netatalk Pi saw it on 25 October 2026.

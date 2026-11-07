@@ -168,6 +168,7 @@ static short World(short mode, Rect *a, short scroll, Point pt)
         TextFace(0);
         MoveTo(x + 42, y + 33);
         if (!gZones[i].scanned) DrawC("not scanned");
+        else if (gZones[i].nodes == 0) DrawC("no answer");   /* 1.0.3: nothing replied (empty, or out of reach) */
         else { CtoP("", s); PCatNum(s, gZones[i].nodes); PCatC(s, gZones[i].nodes == 1 ? " device" : " devices"); DrawString(s); }
         MoveTo(x + 42, y + 45);
         if (gZones[i].lab) DrawC("local");
@@ -234,7 +235,7 @@ static short Diagram(short mode, Rect *a, short scroll, Point pt)
             MoveTo(x + 4, y0 + 21);
             LineTo(x + 4, k ? y0 + kRowTop + (k - 1) * kDevH + 16 : y0 + 34);  /* the zone's drop */
             PenNormal();
-            if (!k) { MoveTo(x + 12, y0 + 36); DrawC(zn->scanned ? "no devices" : "not scanned"); }
+            if (!k) { MoveTo(x + 12, y0 + 36); DrawC(zn->scanned ? "no answer" : "not scanned");   /* 1.0.3: nothing replied; empty or unreachable */ }
         }
         y0 += rowH;
     }
@@ -282,7 +283,7 @@ static short ZoneView(short mode, Rect *a, short scroll, Point pt)
     }
     if (mode == kHit) return -1;
     if (lastNet == -1) {
-        if (mode == kDraw) { Small(); MoveTo(a->left + kGap, top + 20); DrawC(gZones[gCurZone].scanned ? "No devices answered in this zone." : "This zone has not been scanned yet."); }
+        if (mode == kDraw) { Small(); MoveTo(a->left + kGap, top + 20); DrawC(gZones[gCurZone].scanned ? "Nothing answered in this zone: it is empty, or its devices could not be reached." : "This zone has not been scanned yet."); }
         return kHeader + 40;
     }
     return y + kNodeH + kGap + scroll - a->top;

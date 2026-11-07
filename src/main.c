@@ -58,6 +58,18 @@ static void DrawStatus(void)
     TextFont(kFontIDGeneva); TextSize(9); TextFace(0);
     MoveTo(r.left + 6, r.bottom - 4);
     DrawString(sStatus);
+    if (gScanTime && !gScanning) {               /* 1.0.3 (Tim, 5 Nov): when the scan shown was made, at the right */
+        Str255 when, t;
+        short w;
+        CtoP(gScanIsLive ? "Last scan " : "Saved scan from ", when);
+        IUDateString(FixYear(gScanTime), abbrevDate, t); PCat(when, t); PCatC(when, ", ");
+        IUTimeString(FixYear(gScanTime), false, t); PCat(when, t);
+        w = StringWidth(when);
+        if (r.left + 6 + StringWidth(sStatus) + 16 + w <= r.right - 6) {   /* only when it fits beside the message */
+            MoveTo(r.right - 6 - w, r.bottom - 4);
+            DrawString(when);
+        }
+    }
     SetPort(old);
 }
 

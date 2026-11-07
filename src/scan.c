@@ -337,6 +337,7 @@ void ScanIdle(void)
         return;
     }
     gScanning = false;
+    gScanTime = NowFixed();                      /* 1.0.3: the time the scan finished (status line, saved file) */
     BuildNodes();
     HistRecordScan();
     CtoP(sStop ? "Scan stopped: " : "Scan done: ", msg);
