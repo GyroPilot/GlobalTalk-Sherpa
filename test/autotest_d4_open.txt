@@ -1,0 +1,7 @@
+wait 25
+open GlobalTalk Scan
+wait 10
+world
+wait 45
+open ScanLog
+wait 600

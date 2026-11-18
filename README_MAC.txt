@@ -9,7 +9,7 @@ How to use it
 - Map > All Zones shows each zone as a block. Map > Network Diagram draws the network instead: a backbone with each zone's devices hanging off it. Click a device for its card, or a zone's name for the zone.
 - Map > Dashboard shows the numbers: devices by kind, your recent scans, and what's new or gone since the last scan.
 - File > Save Map as Picture saves what you're looking at (the whole view, not just the window) as a PICT that TeachText, SimpleText and paint programs open and print.
-- File > Save List as Text saves the scan. File > Open Scan reads one back.
+- File > Save List as Text saves the scan. File > Open Scan Text List reads one back. (The scan log from File > Save Scan Log is for a text editor or spreadsheet; Sherpa does not open it.)
 - Edit > Paste Icon puts the picture on the clipboard onto a device (or every device of its model). Export Icon Pack shares your icons; Import Icon Pack adds someone else's.
 - Scan > Local Network Zones > Ask the Router shows what your router said. After a Scan Local Network, the Dashboard says it too.
 - On System 7, your own Mac is drawn with its real Apple icon (the one About This Macintosh shows), taken from your Mac itself.

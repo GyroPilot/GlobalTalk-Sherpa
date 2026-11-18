@@ -7,7 +7,7 @@
  *   data fork      the reliability history, one tab-separated line per device
  * "GlobalTalk Sherpa Scan Log" (1.0.4, beside the prefs): one tab-separated line per live scan, oldest
  *   first, never trimmed (about 150 bytes a scan: a year of scans every 6 hours is about 220 KB).
- * Files it writes: map pictures (PICT), scan lists (TEXT; Open Scan reads them back),
+ * Files it writes: map pictures (PICT), scan lists (TEXT; Open Scan Text List reads them back),
  * icon packs (type 'GTSi': just the custom ICN# resources, to share). */
 #include "sherpa.h"
 #include <Multiverse.h>
@@ -731,6 +731,24 @@ void OpenScanNamed(ConstStringPtr name, short vref)
     FSRead(ref, &len, *t);
     FSClose(ref);
     (*t)[len] = '\r';
+    /* 1.0.4d4 (Tim, 18 Nov: opening "Sherpa Scan Log 2" said only "That file had no Sherpa scan
+     * in it"): say what the file is, and keep the map on screen when it is not a scan list. */
+    {
+        long i;
+        Boolean hasZone = false;
+        if (len >= 27 && !strncmp(*t, "GlobalTalk Sherpa scan log:", 27)) {
+            DisposeHandle(t);
+            Alert1("That is a scan log, not a scan text list: open it in a text editor or a spreadsheet. Sherpa opens the lists made by File > Save List as Text.");
+            return;
+        }
+        for (i = 0; i + 6 <= len && !hasZone; i++)
+            if ((i == 0 || (*t)[i - 1] == '\r' || (*t)[i - 1] == '\n') && !strncmp(*t + i, "Zone:\t", 6)) hasZone = true;
+        if (!hasZone) {
+            DisposeHandle(t);
+            Alert1("That file is not a scan text list. Sherpa opens the lists made by File > Save List as Text.");
+            return;
+        }
+    }
     gNumZones = 0; gNumNames = 0; gNumNodes = 0; gScanTime = 0;
     for (p = *t, e = *t + len; p < e; p++) {
         line = p;

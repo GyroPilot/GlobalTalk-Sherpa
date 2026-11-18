@@ -24,6 +24,8 @@ SI=":System Folder:Startup Items"
   $T/hcopy -r $W/auto.txt "$SI:Sherpa Autotest"
   $T/hcopy -r "test/GlobalTalk Scan" "$SI:GlobalTalk Scan"
   for f in "Sherpa Autotest" "GlobalTalk Scan"; do $T/hattrib -t TEXT -c ttxt +i "$SI:$f"; done
+  # EXTRA="file:name ...": more text files for the test, put beside Sherpa (1.0.4d4)
+  for x in ${EXTRA:-}; do src=${x%%:*}; nm=${x#*:}; tr '\n' '\r' < "$src" > $W/extra.txt; $T/hcopy -r $W/extra.txt "$SI:$nm"; $T/hattrib -t TEXT -c ttxt +i "$SI:$nm"; done   # invisible, or the Finder opens it at startup
   $T/humount )
 /opt/local/bin/qemu-system-m68k -M q800 -m 128 -bios $Q/Q800.ROM -display none -g 1152x870x8 \
     -drive file=$W/q_pram.img,format=raw,if=mtd \

@@ -157,7 +157,7 @@ static void MakeWindow(void)
     sScroll = NewControl(gMapWin, &s, "\p", true, 0, 0, 0, scrollBarProc, 0);
     PlaceScroll();
     SetStatus(ATAvailable() ? "Ready. Scan > Scan Local Network looks at your side of the router; Scan All of GlobalTalk looks everywhere."
-                         : "AppleTalk is off: you can still open a saved scan (File > Open Scan).");
+                         : "AppleTalk is off: you can still open a saved scan (File > Open Scan Text List).");
 }
 
 /* ---- Local Network Zones dialog (lab zones in the code) ---- */

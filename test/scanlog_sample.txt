@@ -1,0 +1,3 @@
+GlobalTalk Sherpa scan log: one line per scan, oldest first. Tab-separated: paste it into a spreadsheet.
+Date	Time
+11/18/26	5:04 PM
