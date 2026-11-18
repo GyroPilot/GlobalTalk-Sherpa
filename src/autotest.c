@@ -76,6 +76,8 @@ void AutoTestIdle(void)
     else if (!strcmp(line, "waitscan")) sWaitScan = true;
     else if (!strcmp(line, "pict")) SavePictNamed(p, 0);
     else if (!strcmp(line, "text")) SaveTextNamed(p, 0);
+    else if (!strcmp(line, "log")) SaveScanLogNamed(p, 0);       /* 1.0.4: a copy of the scan log */
+    else if (!strcmp(line, "rescan")) gPrefs.rescanMins = atoi(arg);   /* 1.0.4: minutes, for the prefs check */
     else if (!strcmp(line, "wait")) sWaitUntil = TickCount() + atol(arg) * 60;
     else if (!strcmp(line, "quit")) { ExitToShell(); }
 }

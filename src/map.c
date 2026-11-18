@@ -27,6 +27,8 @@ static const char *kKindName[kNumKinds] = {
     "Macintosh II", "LC", "Tower", "All-in-one", "Power Macintosh", "Dot-matrix printer"
 };
 
+const char *KindName(short kind) { return kKindName[kind]; }
+
 static void Small(void) { TextFont(kFontIDGeneva); TextSize(9); TextFace(0); }
 static void Big(void) { TextFont(systemFont); TextSize(12); TextFace(0); }
 
@@ -505,7 +507,7 @@ static short Dashboard(short mode, Rect *a, short scroll)
     if (routers) y += 14;
 
     /* recent scans */
-    Section(&y, x, right, "Recent scans", draw);
+    Section(&y, x, right, "Recent scans (every scan: File > Save Scan Log)", draw);
     if (draw) {
         Small(); TextFace(underline);
         MoveTo(x, y); DrawC("When");

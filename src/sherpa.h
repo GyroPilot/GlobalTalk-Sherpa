@@ -158,7 +158,11 @@ void OpenScanFile(void);
 void OpenScanNamed(ConstStringPtr name, short vref);
 OSErr SavePictNamed(ConstStringPtr name, short vref);
 OSErr SaveTextNamed(ConstStringPtr name, short vref);
+void SaveScanLogFile(void);     /* 1.0.4: File > Save Scan Log: a copy of the whole log */
+OSErr SaveScanLogNamed(ConstStringPtr name, short vref);
 Handle MapText(void);
+
+const char *KindName(short kind);   /* map.c */
 
 /* autotest.c */
 void AutoTestLoad(void);

@@ -17,9 +17,9 @@ Str32a gMyZone = "\p*";
 
 enum { mApple = 128, mFile, mEdit, mScan, mMap };
 enum { iAbout = 1 };
-enum { iOpen = 1, iSavePict = 3, iSaveText, iExport = 6, iImport, iQuit = 9 };
+enum { iOpen = 1, iSavePict = 3, iSaveText, iSaveLog, iExport = 7, iImport, iQuit = 10 };
 enum { iCopyIcon = 8, iPasteDevice, iPasteModel, iRemoveIcon };
-enum { iScanSite = 1, iScanAll, iStop, iLabZones = 5, iRescanOff = 7, iRescan15, iRescan30, iRescan60 };
+enum { iScanSite = 1, iScanAll, iStop, iLabZones = 5, iRescanOff = 7, iRescan15, iRescan30, iRescan60, iRescan120, iRescan360 };
 enum { iAllZones = 1, iDiagram, iDashboard, iBack = 5 };
 
 static ControlHandle sScroll;
@@ -240,6 +240,8 @@ static void AdjustMenus(void)
     CheckItem(s, iRescan15, gPrefs.rescanMins == 15);
     CheckItem(s, iRescan30, gPrefs.rescanMins == 30);
     CheckItem(s, iRescan60, gPrefs.rescanMins == 60);
+    CheckItem(s, iRescan120, gPrefs.rescanMins == 120);
+    CheckItem(s, iRescan360, gPrefs.rescanMins == 360);
     EN(m, iBack, gLevel > 0);
     CheckItem(m, iAllZones, gPrefs.view == kViewZones);
     CheckItem(m, iDiagram, gPrefs.view == kViewDiagram);
@@ -283,6 +285,7 @@ static void DoMenu(long choice)
         case iOpen: OpenScanFile(); break;
         case iSavePict: SavePictFile(); break;
         case iSaveText: SaveTextFile(); break;
+        case iSaveLog: SaveScanLogFile(); break;
         case iExport: ExportIconPack(); break;
         case iImport: ImportIconPack(); break;
         case iQuit: sQuit = true; break;
@@ -308,6 +311,8 @@ static void DoMenu(long choice)
         case iRescan15: SetRescan(15); break;
         case iRescan30: SetRescan(30); break;
         case iRescan60: SetRescan(60); break;
+        case iRescan120: SetRescan(120); break;   /* 1.0.4 (Tim 17 Nov): longer gaps for a long-running watch */
+        case iRescan360: SetRescan(360); break;
         }
         break;
     case mMap:

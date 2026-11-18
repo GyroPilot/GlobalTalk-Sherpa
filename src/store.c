@@ -5,6 +5,8 @@
  *                  'ICN#' 1000+ = custom icons, named "M:<model>" or "D:<zone>:<device>",
  *                  'SScn' 128 = the dashboard's scan history (ScanSum records, newest first)
  *   data fork      the reliability history, one tab-separated line per device
+ * "GlobalTalk Sherpa Scan Log" (1.0.4, beside the prefs): one tab-separated line per live scan, oldest
+ *   first, never trimmed (about 150 bytes a scan: a year of scans every 6 hours is about 220 KB).
  * Files it writes: map pictures (PICT), scan lists (TEXT; Open Scan reads them back),
  * icon packs (type 'GTSi': just the custom ICN# resources, to share). */
 #include "sherpa.h"
@@ -21,6 +23,7 @@ DevRef gAdded[kMaxChanges], gGone[kMaxChanges];
 short gNumAdded = -1, gNumGone = -1;
 static short sPrefsRes = -1, sPrefsVol;
 static const unsigned char kPrefsName[] = "\pGlobalTalk Sherpa Prefs";
+static const unsigned char kLogName[] = "\pGlobalTalk Sherpa Scan Log";
 
 /* ---------- finding the prefs file ---------- */
 
@@ -221,6 +224,7 @@ static void AddChange(DevRef *list, short *n, ConstStringPtr zone, ConstStringPt
  * the history knows (0 = never). Devices seen then and not now are "gone"; devices not in the
  * history but in a zone with one are "new". */
 static unsigned long sPrevSeen[kMaxZones];
+static void ScanLogAppend(ScanSum *ss);
 
 void HistRecordScan(void)
 {
@@ -291,6 +295,7 @@ void HistRecordScan(void)
     ss->all = gScanAll;
     for (i = 0; i < gNumNodes; i++) ss->kinds[gNodes[i].kind]++;
     SaveScans();
+    ScanLogAppend(ss);                          /* 1.0.4: every scan, kept */
 }
 
 short HistRating(Node *n)
@@ -570,6 +575,84 @@ void SaveTextFile(void)
     SFReply rep;
     SFPutFile(Where(), "\pSave the scan as a text list:", "\pGlobalTalk Scan", NULL, &rep);
     if (rep.good && SaveTextNamed(rep.fName, rep.vRefNum)) Alert1("The list could not be saved.");
+}
+
+/* ---------- the scan log (1.0.4, Tim 17 Nov: 12 scans is half a day at hourly rescans) ---------- */
+
+static void AppendDevList(Handle t, DevRef *list, short n)
+{
+    short i, shown = n < kMaxChanges ? n : kMaxChanges;
+    unsigned char s[80];
+    for (i = 0; i < shown; i++) {
+        if (i) HAppendC(t, ", ");
+        HAppendP(t, list[i].label); HAppendC(t, " ("); HAppendP(t, list[i].zone); HAppendC(t, ")");
+    }
+    if (n > shown) { CtoP(" and ", s); PCatNum(s, n - shown); PCatC(s, " more"); HAppendP(t, s); }
+}
+
+static void ScanLogAppend(ScanSum *ss)
+{
+    Handle t = NewHandle(0);
+    short ref, k, vol = PrefsVol();
+    long len;
+    unsigned char s[64];
+    OSErr err;
+    if (!t) return;
+    err = FSOpen(kLogName, vol, &ref);
+    if (err == fnfErr) {
+        Create(kLogName, vol, 'ttxt', 'TEXT');
+        if (FSOpen(kLogName, vol, &ref) != noErr) { DisposeHandle(t); return; }
+        HAppendC(t, "GlobalTalk Sherpa scan log: one line per scan, oldest first. Tab-separated: paste it into a spreadsheet.\r"
+                    "Date\tTime\tSeconds since 1904\tScan\tZones\tDevices\tNames\tNew\tGone");
+        for (k = 0; k < kNumKinds; k++) { HAppendC(t, "\t"); HAppendC(t, KindName(k)); }
+        HAppendC(t, "\tNew devices\tGone devices\r");
+    } else if (err != noErr) { DisposeHandle(t); return; }
+    IUDateString(FixYear(ss->when), shortDate, s); HAppendP(t, s); HAppendC(t, "\t");
+    IUTimeString(FixYear(ss->when), false, s); HAppendP(t, s); HAppendC(t, "\t");
+    CtoP("", s); PCatU(s, ss->when); HAppendP(t, s);
+    HAppendC(t, ss->all ? "\tAll" : "\tLocal");
+    CtoP("\t", s); PCatNum(s, ss->zones); PCatC(s, "\t"); PCatNum(s, ss->devices);
+    PCatC(s, "\t"); PCatNum(s, ss->names); PCatC(s, "\t"); PCatNum(s, ss->added);
+    PCatC(s, "\t"); PCatNum(s, ss->gone); HAppendP(t, s);
+    for (k = 0; k < kNumKinds; k++) { CtoP("\t", s); PCatNum(s, ss->kinds[k]); HAppendP(t, s); }
+    HAppendC(t, "\t"); AppendDevList(t, gAdded, gNumAdded);
+    HAppendC(t, "\t"); AppendDevList(t, gGone, gNumGone);
+    HAppendC(t, "\r");
+    len = GetHandleSize(t);
+    HLock(t);
+    if (SetFPos(ref, fsFromLEOF, 0) == noErr) FSWrite(ref, &len, *t);
+    FSClose(ref);
+    FlushVol(NULL, vol);
+    DisposeHandle(t);
+}
+
+OSErr SaveScanLogNamed(ConstStringPtr name, short vref)
+{
+    short ref;
+    long len;
+    Handle t;
+    OSErr err = FSOpen(kLogName, PrefsVol(), &ref);
+    if (err) return err;
+    GetEOF(ref, &len);
+    t = NewHandle(len);
+    if (!t) { FSClose(ref); return memFullErr; }
+    HLock(t);
+    err = FSRead(ref, &len, *t);
+    FSClose(ref);
+    HUnlock(t);
+    if (!err) err = WriteNamed(name, vref, 'TEXT', t, 0);
+    DisposeHandle(t);
+    return err;
+}
+
+void SaveScanLogFile(void)
+{
+    SFReply rep;
+    short ref;
+    if (FSOpen(kLogName, PrefsVol(), &ref) != noErr) { Alert1("There is no scan log yet: it starts with the next live scan."); return; }
+    FSClose(ref);
+    SFPutFile(Where(), "\pSave a copy of the scan log (every scan):", "\pSherpa Scan Log", NULL, &rep);
+    if (rep.good && SaveScanLogNamed(rep.fName, rep.vRefNum)) Alert1("The scan log could not be saved (out of memory or disk space?).");
 }
 
 Handle MapText(void)
