@@ -174,6 +174,10 @@ static void GroupHeading(short mode, Rect *a, short y, Boolean lan, short count)
     CtoP(lan ? "   zones on this Mac's own network, " : "   zones reached across GlobalTalk, ", s);
     PCatNum(s, count); PCatC(s, count == 1 ? " zone" : " zones");
     DrawString(s);
+    if (lan && gLanNote[0] && gScanIsLive) {               /* 1.0.4d3: why these are LAN */
+        short x0 = a->left + kGap + StringWidth("\pLAN") + StringWidth(s) + 30;
+        if (a->right - kGap - x0 > 60) { MoveTo(x0, y + 12); TextFace(italic); DrawFit(gLanNote, a->right - kGap - x0); TextFace(0); }
+    }
     MoveTo(a->left + kGap, y + 15); LineTo(a->right - kGap, y + 15);
 }
 

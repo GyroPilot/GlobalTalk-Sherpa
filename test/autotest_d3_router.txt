@@ -1,0 +1,10 @@
+wait 25
+scan site
+waitscan
+wait 8
+world
+wait 15
+dashboard
+wait 15
+log Shot scanlog
+wait 600

@@ -90,12 +90,13 @@ static OSErr SendDDP(unsigned char sock, unsigned short net, unsigned char node,
     return PBControlSync((ParmBlkPtr)&pb);
 }
 
-/* Wait for answers: up to 3 seconds, or half a second after the last packet. */
-static void Collect(void)
+/* Wait for answers: up to firstWait ticks for the first packet, then until half a second
+ * passes with nothing new (1.0.4d3: the first wait is longer on a retry). */
+static void Collect(short firstWait)
 {
     unsigned long start = TickCount(), lastChange = start;
     short seen = 0;
-    while (TickCount() - start < 180) {
+    while (seen ? TickCount() - start < 600 : TickCount() - start < firstWait) {
         if (gDDPUsed != seen) { seen = gDDPUsed; lastChange = TickCount(); }
         if (seen && TickCount() - lastChange > 30) break;
         Yield();
@@ -112,13 +113,33 @@ static Boolean NextPacket(short *pos, unsigned char **p, short *len)
     return true;
 }
 
+/* The ZIP replies in gDDPBuf: each (net, zone) tuple marks its net as named in got[] and adds
+ * the zone to out[] once. Reply (2) and Extended Reply (8) have the same tuple layout. */
+static void TakeZipReplies(unsigned short *nets, Boolean *got, short nNets, Str32a *out, short max, short *n)
+{
+    short pos, len, i, k;
+    unsigned char *p;
+    for (pos = 0; NextPacket(&pos, &p, &len); ) {
+        if (len < 2 || (p[0] != 2 && p[0] != 8)) continue;
+        for (i = 2; i + 3 <= len && i + 3 + p[i + 2] <= len; i += 3 + p[i + 2]) {
+            unsigned short net = (p[i] << 8) | p[i + 1];
+            unsigned char *z = p + i + 2;       /* the zone, as a Pascal string */
+            for (k = 0; k < nNets; k++) if (nets[k] == net) got[k] = true;
+            if (z[0] == 0 || z[0] > 32 || *n == max) continue;
+            for (k = 0; k < *n && !PEqualNoCase(out[k], z); k++) ;
+            if (k == *n) PCopy(out[(*n)++], z, 32);
+        }
+    }
+}
+
 static short AskRouter(Str32a *out, short max)
 {
     static ATInfoPB info;
     static DDPPB pb;
     unsigned short nets[kMaxNets], rnet;
     unsigned char rnode, sock, req[2 + 2 * kMaxNets], *p;
-    short nNets = 0, n = 0, pos, len, i, k, packets = 0;
+    short nNets = 0, n = 0, pos, len, i, k, packets = 0, tries = 0, named = 0;
+    Boolean got[kMaxNets];
     OSErr err;
 
     memset(&info, 0, sizeof info);
@@ -145,9 +166,15 @@ static short AskRouter(Str32a *out, short max)
     sock = pb.socket;
 
     /* 1. RTMP Route Data Request (DDP type 5, command 3: the whole table, no split horizon) */
-    gDDPUsed = 0;
+    /* 1.0.4d3: up to three tries, the later ones waiting longer for the first packet (18 Nov:
+     * on Tim's network d2 showed only this cable's zone, though the IIsi answers the same
+     * request from the Pi with nets 35, 37 and 38 at distance 0). */
     req[0] = 3;
-    if ((err = SendDDP(sock, rnet, rnode, 1, 5, req, 1)) == noErr) Collect();
+    do {
+        gDDPUsed = 0;
+        tries++;
+        if ((err = SendDDP(sock, rnet, rnode, 1, 5, req, 1)) == noErr) Collect(tries == 1 ? 180 : 300);
+    } while (err == noErr && gDDPUsed == 0 && tries < 3);
     for (pos = 0; NextPacket(&pos, &p, &len); ) {
         packets++;
         /* router's net (2), ID length in bits (1), node ID, then the routing tuples */
@@ -165,21 +192,23 @@ static short AskRouter(Str32a *out, short max)
     }
 
     /* 2. ZIP Query (DDP type 6) for the zones of those networks */
+    /* Then, 1.0.4d3: any net that got no zone name is asked for again on its own. */
+    for (k = 0; k < nNets; k++) got[k] = false;
     if (nNets > 0) {
         gDDPUsed = 0;
         req[0] = 1;                                 /* Query */
         req[1] = nNets;
         for (k = 0; k < nNets; k++) { req[2 + 2 * k] = nets[k] >> 8; req[3 + 2 * k] = nets[k]; }
-        if (SendDDP(sock, rnet, rnode, 6, 6, req, 2 + 2 * nNets) == noErr) Collect();
-        for (pos = 0; NextPacket(&pos, &p, &len); ) {
-            if (len < 2 || (p[0] != 2 && p[0] != 8)) continue;   /* Reply or Extended Reply */
-            for (i = 2; i + 3 <= len && i + 3 + p[i + 2] <= len; i += 3 + p[i + 2]) {
-                unsigned char *z = p + i + 2;       /* the zone, as a Pascal string */
-                if (z[0] == 0 || z[0] > 32 || n == max) continue;
-                for (k = 0; k < n && !PEqualNoCase(out[k], z); k++) ;
-                if (k == n) PCopy(out[n++], z, 32);
-            }
+        if (SendDDP(sock, rnet, rnode, 6, 6, req, 2 + 2 * nNets) == noErr) Collect(180);
+        TakeZipReplies(nets, got, nNets, out, max, &n);
+        for (k = 0; k < nNets; k++) {
+            if (got[k]) continue;
+            gDDPUsed = 0;
+            req[1] = 1; req[2] = nets[k] >> 8; req[3] = nets[k];
+            if (SendDDP(sock, rnet, rnode, 6, 6, req, 4) == noErr) Collect(300);
+            TakeZipReplies(nets, got, nNets, out, max, &n);
         }
+        for (k = 0; k < nNets; k++) if (got[k]) named++;
     }
 
     if (err) { PCatC(gRouterNote, ": send error "); PCatNum(gRouterNote, err); }
@@ -187,7 +216,10 @@ static short AskRouter(Str32a *out, short max)
     else {
         PCatC(gRouterNote, ": "); PCatNum(gRouterNote, nNets);
         PCatC(gRouterNote, nNets == 1 ? " network, " : " networks, "); PCatNum(gRouterNote, n);
-        PCatC(gRouterNote, n == 1 ? " zone." : " zones.");
+        PCatC(gRouterNote, n == 1 ? " zone" : " zones");
+        if (named < nNets) { PCatC(gRouterNote, " ("); PCatNum(gRouterNote, nNets - named); PCatC(gRouterNote, " unnamed)"); }
+        if (tries > 1) { PCatC(gRouterNote, ", try "); PCatNum(gRouterNote, tries); }
+        PCatC(gRouterNote, ".");
     }
 
     pb.csCode = closeSkt;

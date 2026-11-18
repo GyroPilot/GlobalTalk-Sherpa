@@ -137,15 +137,18 @@ static void GetMyZoneName(void)
 static Str32a sLocal[kMaxLab];
 static short sNumLocal;
 
+/* 1.0.4d3: where the LAN came from, for the LAN heading and the scan log (Pascal string). */
+unsigned char gLanNote[120];
+
+/* 1.0.4d3: a zone is LAN if it is this Mac's own zone, one the router has plugged straight in,
+ * or one typed in Scan > Local Network Zones: all three together. Until d2 a typed list
+ * replaced the router's answer, so an old list could hide zones (Tim's network, 18 Nov). */
 Boolean IsLabZone(ConstStringPtr z)
 {
     short i;
-    if (gPrefs.labCount == 0) {
-        if (PEqualNoCase(z, gMyZone) || (z[0] == 1 && z[1] == '*')) return true;
-        for (i = 0; i < sNumLocal; i++)
-            if (PEqualNoCase(z, sLocal[i])) return true;
-        return false;
-    }
+    if (PEqualNoCase(z, gMyZone) || (z[0] == 1 && z[1] == '*')) return true;
+    for (i = 0; i < sNumLocal; i++)
+        if (PEqualNoCase(z, sLocal[i])) return true;
     for (i = 0; i < gPrefs.labCount; i++)
         if (PEqualNoCase(z, gLab[i])) return true;
     return false;
@@ -246,7 +249,12 @@ void ScanStart(Boolean wholeNet)
     SetStatus("Asking the router for zones\311");
     GetInfo();
     GetMyZoneName();
-    sNumLocal = gPrefs.labCount ? 0 : FindLocalNetwork(sLocal, kMaxLab);
+    sNumLocal = FindLocalNetwork(sLocal, kMaxLab);
+    PCopy(gLanNote, gRouterNote, 99);
+    if (gPrefs.labCount) {
+        PCatC(gLanNote, " Plus typed: "); PCatNum(gLanNote, gPrefs.labCount);
+        PCatC(gLanNote, gPrefs.labCount == 1 ? " zone." : " zones.");
+    }
     /* 1.0.1: GetZoneList came back short now and then (43 to 49 zones from one scan to the next
      * on the Performa, 29 Oct), so the list is asked for three times and the union kept. */
     err = GetZoneNames(zipGetZoneList, zl, kMaxZones, &n);

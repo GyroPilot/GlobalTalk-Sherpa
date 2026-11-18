@@ -116,6 +116,7 @@ void ScanStop(void);
 void ScanQuit(void);
 void BuildNodes(void);
 Boolean IsLabZone(ConstStringPtr z);
+extern unsigned char gLanNote[120];     /* 1.0.4d3: where the LAN came from (router, cable, typed) */
 OSErr GetLocalZoneNames(Str32a *out, short max, short *n);
 extern Boolean gScanAll;
 

@@ -605,7 +605,7 @@ static void ScanLogAppend(ScanSum *ss)
         HAppendC(t, "GlobalTalk Sherpa scan log: one line per scan, oldest first. Tab-separated: paste it into a spreadsheet.\r"
                     "Date\tTime\tSeconds since 1904\tScan\tZones\tDevices\tNames\tNew\tGone");
         for (k = 0; k < kNumKinds; k++) { HAppendC(t, "\t"); HAppendC(t, KindName(k)); }
-        HAppendC(t, "\tNew devices\tGone devices\r");
+        HAppendC(t, "\tNew devices\tGone devices\tLAN from\r");
     } else if (err != noErr) { DisposeHandle(t); return; }
     IUDateString(FixYear(ss->when), shortDate, s); HAppendP(t, s); HAppendC(t, "\t");
     IUTimeString(FixYear(ss->when), false, s); HAppendP(t, s); HAppendC(t, "\t");
@@ -617,6 +617,7 @@ static void ScanLogAppend(ScanSum *ss)
     for (k = 0; k < kNumKinds; k++) { CtoP("\t", s); PCatNum(s, ss->kinds[k]); HAppendP(t, s); }
     HAppendC(t, "\t"); AppendDevList(t, gAdded, gNumAdded);
     HAppendC(t, "\t"); AppendDevList(t, gGone, gNumGone);
+    HAppendC(t, "\t"); HAppendP(t, gLanNote);           /* 1.0.4d3: router, cable or typed (logs from d1/d2 lack this column's header) */
     HAppendC(t, "\r");
     len = GetHandleSize(t);
     HLock(t);
