@@ -1,0 +1,17 @@
+wait 25
+open GlobalTalk Scan
+wait 10
+world
+wait 10
+lab LisaGaming
+lab Lisa_Net_LT
+lab Lisa_Net_E
+wait 12
+pict Shot LANWAN world
+wait 4
+diagram
+wait 12
+pict Shot LANWAN diagram
+wait 4
+zone 68k Mac Club
+wait 600

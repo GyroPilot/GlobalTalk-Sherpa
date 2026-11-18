@@ -71,6 +71,11 @@ void AutoTestIdle(void)
                 break;
             }
     }
+    else if (!strcmp(line, "lab") && gPrefs.labCount < kMaxLab) {   /* 1.0.4d2: a local zone, as if typed in (not saved) */
+        PCopy(gLab[gPrefs.labCount++], p, 32);
+        for (k = 0; k < gNumZones; k++) gZones[k].lab = IsLabZone(gZones[k].name);
+        MapChanged();
+    }
     else if (!strcmp(line, "router")) { static Str32a z[8]; FindLocalNetwork(z, 8); SetStatusP(gRouterNote); }
     else if (!strcmp(line, "scan")) ScanStart(!strcmp(arg, "all"));
     else if (!strcmp(line, "waitscan")) sWaitScan = true;

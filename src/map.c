@@ -145,16 +145,58 @@ static void Header(Rect *area, Boolean draw)
     }
 }
 
+/* ---- LAN and WAN (1.0.4, Tim 15 Nov) ----
+ * Level 0 lists the zones in two groups: LAN, the zones local to the Mac Sherpa runs on
+ * (the .lab flag: Scan > Local Network Zones if typed in, otherwise what the router says is
+ * plugged straight into it, FindLocalNetwork), then WAN, everything else. Nothing here
+ * knows any site's zone names. gZones keeps its order (names and nodes point into it);
+ * only the drawing order changes. ZoneOrder fills ord with the LAN zones then the WAN
+ * zones and returns how many are LAN. */
+#define kGroupH 18
+static short ZoneOrder(short *ord)
+{
+    short i, n = 0, lan;
+    for (i = 0; i < gNumZones; i++) if (gZones[i].lab) ord[n++] = i;
+    lan = n;
+    for (i = 0; i < gNumZones; i++) if (!gZones[i].lab) ord[n++] = i;
+    return lan;
+}
+
+/* The heading above a group: "LAN  3 zones" with a rule under it. */
+static void GroupHeading(short mode, Rect *a, short y, Boolean lan, short count)
+{
+    unsigned char s[60];
+    if (mode != kDraw || y + kGroupH < a->top + kHeader || y > a->bottom) return;
+    Small(); TextFace(bold);
+    MoveTo(a->left + kGap, y + 12);
+    DrawC(lan ? "LAN" : "WAN");
+    TextFace(0);
+    CtoP(lan ? "   zones on this Mac's own network, " : "   zones reached across GlobalTalk, ", s);
+    PCatNum(s, count); PCatC(s, count == 1 ? " zone" : " zones");
+    DrawString(s);
+    MoveTo(a->left + kGap, y + 15); LineTo(a->right - kGap, y + 15);
+}
+
 /* ---- level 0 ---- */
 static short World(short mode, Rect *a, short scroll, Point pt)
 {
-    short cols = (a->right - a->left - kGap) / (kZoneW + kGap), i, x, y;
+    short cols = (a->right - a->left - kGap) / (kZoneW + kGap), i, k, x, y, lan, g, top;
+    static short ord[kMaxZones];
     Rect r, ir;
     unsigned char s[40];
     if (cols < 1) cols = 1;
-    for (i = 0; i < gNumZones; i++) {
-        x = a->left + kGap + (i % cols) * (kZoneW + kGap);
-        y = a->top + kHeader + kGap + (i / cols) * (kZoneH + kGap) - scroll;
+    lan = ZoneOrder(ord);
+    top = a->top + kHeader + kGap - scroll;
+    for (k = 0; k < gNumZones; k++) {
+        i = ord[k];
+        g = k < lan ? k : k - lan;                          /* place within its group */
+        if (k == 0 || k == lan) {
+            if (k == lan && lan > 0) top += ((lan + cols - 1) / cols) * (kZoneH + kGap);
+            GroupHeading(mode, a, top, k < lan, k < lan ? lan : gNumZones - lan);
+            top += kGroupH;
+        }
+        x = a->left + kGap + (g % cols) * (kZoneW + kGap);
+        y = top + (g / cols) * (kZoneH + kGap);
         SetRect(&r, x, y, x + kZoneW, y + kZoneH);
         if (mode == kHit) { if (PtInRect(pt, &r)) return i; continue; }
         if (mode != kDraw || r.bottom < a->top + kHeader || r.top > a->bottom) continue;
@@ -176,7 +218,12 @@ static short World(short mode, Rect *a, short scroll, Point pt)
         if (gZones[i].lab) DrawC("local");
     }
     if (mode == kHit) return -1;
-    return kHeader + kGap + ((gNumZones + cols - 1) / cols) * (kZoneH + kGap);
+    {
+        short wan = gNumZones - lan, h = kHeader + kGap;
+        if (lan) h += kGroupH + ((lan + cols - 1) / cols) * (kZoneH + kGap);
+        if (wan) h += kGroupH + ((wan + cols - 1) / cols) * (kZoneH + kGap);
+        return h;
+    }
 }
 
 /* ---- level 0, as a network diagram ----
@@ -189,15 +236,22 @@ static short World(short mode, Rect *a, short scroll, Point pt)
 
 static short Diagram(short mode, Rect *a, short scroll, Point pt)
 {
-    short cols = (a->right - a->left - kGap) / kColW, z, c, i, k, x, y, rowH, most, inRow;
+    short cols = (a->right - a->left - kGap) / kColW, z, c, i, k, x, y, rowH, most, inRow, lan, end;
     short y0 = a->top + kHeader + 6 - scroll;
+    static short ord[kMaxZones];
     Rect r, ir;
     unsigned char s[40];
     if (cols < 1) cols = 1;
-    for (z = 0; z < gNumZones; z += cols) {
-        inRow = gNumZones - z < cols ? gNumZones - z : cols;
+    lan = ZoneOrder(ord);
+    for (z = 0; z < gNumZones; z += inRow) {
+        if (z == 0 || z == lan) {                           /* a group starts: its heading */
+            GroupHeading(mode, a, y0, z < lan, z < lan ? lan : gNumZones - lan);
+            y0 += kGroupH;
+        }
+        end = z < lan ? lan : gNumZones;                    /* a row never spans both groups */
+        inRow = end - z < cols ? end - z : cols;
         most = 0;
-        for (c = 0; c < inRow; c++) if (gZones[z + c].nodes > most) most = gZones[z + c].nodes;
+        for (c = 0; c < inRow; c++) if (gZones[ord[z + c]].nodes > most) most = gZones[ord[z + c]].nodes;
         rowH = kRowTop + (most ? most * kDevH : 14) + 14;
         if (mode == kDraw && y0 < a->bottom && y0 + rowH > a->top + kHeader) {
             short right = a->left + kGap + inRow * kColW - 8;
@@ -205,14 +259,15 @@ static short Diagram(short mode, Rect *a, short scroll, Point pt)
             MoveTo(a->left + kGap, y0 + 21); LineTo(right, y0 + 21);
         }
         for (c = 0; c < inRow; c++) {
-            ATZone *zn = &gZones[z + c];
+            short zi = ord[z + c];
+            ATZone *zn = &gZones[zi];
             x = a->left + kGap + c * kColW;
             SetRect(&r, x, y0, x + kColW - 8, y0 + 16);
-            if (mode == kHit && PtInRect(pt, &r)) return -2 - (z + c);
+            if (mode == kHit && PtInRect(pt, &r)) return -2 - zi;
             k = 0;
             for (i = 0; i < gNumNodes; i++) {
                 Node *n = &gNodes[i];
-                if (n->zone != z + c) continue;
+                if (n->zone != zi) continue;
                 y = y0 + kRowTop + k * kDevH;
                 k++;
                 SetRect(&r, x + 14, y, x + kColW - 8, y + kDevH - 4);
