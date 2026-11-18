@@ -6,9 +6,11 @@ How to use it
 - Scan > Scan Local Network looks at your side of the router: Sherpa asks your router which networks are plugged straight into it, and scans their zones. To choose the zones yourself, use Scan > Local Network Zones.
 - Scan > Scan All of GlobalTalk looks at every zone, one at a time (a few minutes).
 - Click a zone to see its devices; click a device to see its card. Click the bar at the top, or press Delete, to go back out.
+- The zones are shown in two groups: LAN, the zones on your own network (the ones your router has plugged straight in, plus your own zone and any you typed in Scan > Local Network Zones), then WAN, the zones reached across GlobalTalk. The LAN heading says where its list came from, for example "Router 38.1: 3 networks, 3 zones."
 - Map > All Zones shows each zone as a block. Map > Network Diagram draws the network instead: a backbone with each zone's devices hanging off it. Click a device for its card, or a zone's name for the zone.
 - Map > Dashboard shows the numbers: devices by kind, your recent scans, and what's new or gone since the last scan.
 - File > Save Map as Picture saves what you're looking at (the whole view, not just the window) as a PICT that TeachText, SimpleText and paint programs open and print.
+- Every live scan adds a line to "GlobalTalk Sherpa Scan Log" next to Sherpa's preferences, and the file is never trimmed. File > Save Scan Log saves a copy. Scan > Rescan Every 2 Hours or Every 6 Hours keeps it scanning on its own.
 - File > Save List as Text saves the scan. File > Open Scan Text List reads one back. (The scan log from File > Save Scan Log is for a text editor or spreadsheet; Sherpa does not open it.)
 - Edit > Paste Icon puts the picture on the clipboard onto a device (or every device of its model). Export Icon Pack shares your icons; Import Icon Pack adds someone else's.
 - Scan > Local Network Zones > Ask the Router shows what your router said. After a Scan Local Network, the Dashboard says it too.
@@ -22,4 +24,4 @@ File servers: the card shows whether a server takes guests. Sherpa asks the same
 
 Runs on System 6.0.8 and System 7 (68000 code: Plus and up). AppleTalk must be on.
 
-Version VERSION, 7 November 2026, from Tim O'Connor's lab (Marchintosh 2027). The sample scan is GlobalTalk as the netatalk Pi saw it on 25 October 2026.
+Version VERSION, 18 November 2026, from Tim O'Connor's lab (Marchintosh 2027). The sample scan is GlobalTalk as the netatalk Pi saw it on 25 October 2026.

@@ -195,3 +195,19 @@ for now. Let's build a 1.0 please." So 1.0 is 0.1d8's source as it stood, with t
   rendered Shot World PICT: dist/Screenshots 1.0.1 (QEMU System 7.6.1)/. Tim's Performa photos, cleaned up with
   src/moof-setup/crt_clean.py (perspective, moire, lighting): dist/Performa photos cleaned/. Hardware test of
   the zone list, the two-miss "gone" and Lisa_Net_LT still to come (Performa).
+
+## 1.0.4 (released 18 Nov 2026, on Tim's "Release Sherpa 1.0.4")
+- **Scan log** (1.0.4d1, built by the banana, 17 Nov): "GlobalTalk Sherpa Scan Log" beside the prefs, one
+  tab-separated line per live scan, never trimmed; File > Save Scan Log; Scan > Rescan Every 2 / 6 Hours.
+- **LAN and WAN** (d2, Tim 15 Nov): level 0 (zone grid and diagram) lists LAN zones first, then WAN, under
+  headings. LAN = this Mac's own zone + the router's distance-0 zones (RTMP Route Data Request + ZIP Query,
+  local.c) + any typed Local Network Zones, together (d3; until d2 a typed list replaced the router's answer).
+- **Router request** (d3): the RTMP request is retried up to three times; a network that comes back without a
+  zone name is asked for again on its own. Where the LAN came from is shown in the LAN heading and written as
+  the scan log's last column ("LAN from").
+- **Open Scan Text List** (d4): the File menu item's new name; opening a scan log or any other non-list file
+  says what it is and keeps the map on screen.
+- Tested: QEMU 7.6.1 (saved scans, a live scan with no router, the scan-log message). Performa 475 on Tim's
+  network, 18 Nov: "Router 38.1: 3 networks, 3 zones." with LisaGaming, Lisa_Net_LT, Lisa_Net_E as LAN (d3, d4),
+  the first hardware proof of the router request; Tim: the menu text looks good. Not tried: System 6 on a Plus,
+  a site with no router, the Mac XL.
